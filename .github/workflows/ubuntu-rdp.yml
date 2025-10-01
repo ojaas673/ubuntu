@@ -1,4 +1,4 @@
-name: Ubuntu RDP with XRDP and LocalToNet
+name: Ubuntu RDP with XRDP + LocalToNet
 
 on:
   workflow_dispatch:
@@ -11,17 +11,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install XRDP and Desktop Environment
+      - name: Install XRDP and desktop
         run: |
           sudo apt-get update
           sudo apt-get install -y xrdp xfce4 xfce4-goodies
           sudo systemctl enable xrdp
           sudo systemctl start xrdp
-          echo "runner:rdppass" | sudo chpasswd   # set password
+          # set a password for runner user (or change to your user)
+          echo "runner:rdppass" | sudo chpasswd
 
-      - name: Download LocalToNet
+      - name: Download LocalToNet client
         run: |
-          wget https://localtonet.com/download/linux-x64.zip -O localtonet.zip
+          wget https://localtonet.com/download/localtonet-linux-x64.zip -O localtonet.zip
           unzip localtonet.zip
           chmod +x localtonet
           sudo mv localtonet /usr/local/bin/
@@ -30,11 +31,11 @@ jobs:
         run: |
           localtonet authtoken ${{ secrets.LOCALTONET_AUTH_TOKEN }}
 
-      - name: Start LocalToNet Tunnel for RDP (Port 3389)
+      - name: Start LocalToNet tunnel for RDP
         run: |
           nohup localtonet tcp 3389 > localtonet.log 2>&1 &
 
-      - name: Show Tunnel URL
+      - name: Wait & show public address
         run: |
           sleep 5
           cat localtonet.log
